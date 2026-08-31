@@ -1,1 +1,0 @@
-{"name":"Snacky Music","short_name":"Snacky","description":"Tu reproductor de música personal","start_url":"/isnacky/","display":"standalone","background_color":"#070707","theme_color":"#070707","lang":"en","scope":"/isnacky/","orientation":"portrait","icons":[{"src":"/gumi.jpg","sizes":"192x192","type":"image/jpeg"},{"src":"/gumi.jpg","sizes":"512x512","type":"image/jpeg"}]}
