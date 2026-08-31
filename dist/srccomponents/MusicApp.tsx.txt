@@ -1,0 +1,109 @@
+import React, { useState, useEffect } from 'react';
+import { searchSongs, Song } from '../services/youtubeService';
+
+export const MusicApp: React.FC = () => {
+  const [query, setQuery] = useState('');
+  const [songs, setSongs] = useState<Song[]>([]);
+  const [currentSong, setCurrentSong] = useState<Song | null>(null);
+  const [isPlaying, setIsPlaying] = useState(false);
+
+  useEffect(() => {
+    // Cargar canciones iniciales al abrir la app
+    searchSongs('').then(data => {
+      setSongs(data);
+      if (data.length > 0) setCurrentSong(data[0]);
+    });
+  }, []);
+
+  const handleSearch = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const results = await searchSongs(query);
+    setSongs(results);
+  };
+
+  return (
+    <div className="flex flex-col h-screen bg-gray-950 text-white font-sans">
+      {/* Header / Buscador */}
+      <header className="p-4 bg-gray-900 border-b border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4">
+        <h1 className="text-xl font-bold tracking-wider text-pink-500">🎧 Figma Music Stream</h1>
+        <form onSubmit={handleSearch} className="flex w-full md:w-96 gap-2">
+          <input
+            type="text"
+            placeholder="Buscar canción, artista o beat..."
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            className="w-full px-4 py-2 bg-gray-800 rounded-lg border border-gray-700 focus:outline-none focus:border-pink-500 text-sm"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-pink-600 hover:bg-pink-500 text-white rounded-lg text-sm font-semibold transition"
+          >
+            Buscar
+          </button>
+        </form>
+      </header>
+
+      {/* Contenido Principal: Lista de canciones */}
+      <main className="flex-1 overflow-y-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {songs.map((song) => (
+          <div
+            key={song.id}
+            onClick={() => {
+              setCurrentSong(song);
+              setIsPlaying(true);
+            }}
+            className={`flex items-center gap-4 p-3 rounded-xl cursor-pointer transition border ${
+              currentSong?.id === song.id
+                ? 'bg-pink-950/40 border-pink-500'
+                : 'bg-gray-900/60 border-gray-800 hover:bg-gray-800'
+            }`}
+          >
+            <img src={song.thumbnail} alt={song.title} className="w-16 h-16 object-cover rounded-lg" />
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-sm truncate">{song.title}</h3>
+              <p className="text-xs text-gray-400 truncate">{song.artist}</p>
+            </div>
+            <button className="p-2 text-pink-400 hover:text-white">
+              ▶️
+            </button>
+          </div>
+        ))}
+      </main>
+
+      {/* Barra Reproductor inferior */}
+      {currentSong && (
+        <footer className="p-4 bg-gray-900 border-t border-gray-800 flex flex-col md:flex-row items-center justify-between gap-4 shadow-2xl">
+          <div className="flex items-center gap-3 w-full md:w-auto">
+            <img src={currentSong.thumbnail} alt="" className="w-12 h-12 rounded object-cover" />
+            <div className="truncate">
+              <p className="text-sm font-medium truncate">{currentSong.title}</p>
+              <p className="text-xs text-gray-400 truncate">{currentSong.artist}</p>
+            </div>
+          </div>
+
+          {/* Reproductor Iframe integrado oculto/funcional de YouTube */}
+          <div className="w-full md:w-auto flex flex-col items-center gap-2">
+            <div className="flex items-center gap-4">
+              <button 
+                onClick={() => setIsPlaying(!isPlaying)}
+                className="w-10 h-10 bg-pink-600 hover:bg-pink-500 rounded-full flex items-center justify-center font-bold text-white transition"
+              >
+                {isPlaying ? '⏸' : '▶'}
+              </button>
+            </div>
+            <div className="w-full hidden md:block">
+              <iframe
+                title="YouTube Audio Player"
+                width="200"
+                height="40"
+                src={`https://www.youtube.com/embed/${currentSong.id}?autoplay=${isPlaying ? 1 : 0}&enablejsapi=1`}
+                className="rounded opacity-80 hover:opacity-100 transition"
+                allow="autoplay"
+              ></iframe>
+            </div>
+          </div>
+        </footer>
+      )}
+    </div>
+  );
+};
